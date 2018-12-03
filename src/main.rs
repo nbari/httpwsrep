@@ -2,7 +2,6 @@ extern crate clap;
 
 use clap::{App, Arg};
 // use mysql::{Pool, Opts};
-use mysql::Pool;
 
 extern crate mysql;
 
