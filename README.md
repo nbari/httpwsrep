@@ -1,7 +1,7 @@
 # httpwsrep
 HTTP status codes for galera cluster `wsrep_*`
 
-#HAProxy example
+## HAProxy example
 
 To check the galera clustger using `httpchk` by checking `SHOW GLOBAL STATUS LIKE 'wsrep_local_state_comment';`
 
