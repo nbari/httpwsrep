@@ -13,4 +13,4 @@ license-file = "LICENSE"
 
 [dependencies]
 clap = "2"
-mysql = "*"
+mysql = "14"
