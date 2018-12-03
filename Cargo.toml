@@ -7,7 +7,7 @@ documentation = "https://github.com/nbari/httpwsrep/blob/master/README.md"
 homepage = "https://github.com/nbari/httpwsrep"
 repository = "https://github.com/nbari/httpwsrep"
 readme = "README.md"
-keywords = ["galera", "cluster", "mysql", "http", "wsrep", "haproxy", "check"]
+keywords = ["galera", "cluster", "mysql", "http", "wsrep"]
 categories = ["database", "network-programming"]
 license-file = "LICENSE"
 
