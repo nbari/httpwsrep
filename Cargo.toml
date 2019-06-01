@@ -10,7 +10,8 @@ readme = "README.md"
 keywords = ["galera", "cluster", "mysql", "http", "wsrep"]
 categories = ["database", "network-programming"]
 license-file = "LICENSE"
+edition = "2018"
 
 [dependencies]
 clap = "2"
-mysql = "14"
+mysql = "16"
