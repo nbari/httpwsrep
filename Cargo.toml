@@ -18,4 +18,4 @@ travis-ci = { repository = "nbari/httpwsrep", branch = "master" }
 [dependencies]
 clap = "2.33.0"
 mysql = "17.0.0"
-hyper = "0.12.35"
+hyper = "0.12"

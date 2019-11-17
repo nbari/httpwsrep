@@ -1,41 +1,58 @@
-extern crate clap;
-
 use clap::{App, Arg};
-// use mysql::{Pool, Opts};
-
-extern crate mysql;
+use hyper::rt::Future;
+use hyper::service::service_fn_ok;
+use hyper::{Body, Request, Response, Server};
 
 fn main() {
     let matches = App::new("httpwsrep")
         .version(env!("CARGO_PKG_VERSION"))
-        .arg(Arg::with_name("host")
-             .short("h")
-             .long("host")
-             .value_name("localhost")
-             .help("mysql host"))
-        .arg(Arg::with_name("port")
-             .short("P")
-             .long("port")
-             .value_name("3306")
-             .help("mysql port"))
-        .arg(Arg::with_name("user")
-             .short("u")
-             .long("user")
-             .value_name("root")
-             .help("mysql user"))
-        .arg(Arg::with_name("password")
-             .short("p")
-             .long("password")
-             .value_name("password")
-             .help("mysql password"))
+        .arg(
+            Arg::with_name("DSN")
+                .env("DSN")
+                .help("mysql://<user>:<password>@unix(/tmp/mysql.sock)/<database>")
+                .long("dsn")
+                .required(true),
+        )
+        .arg(
+            Arg::with_name("port")
+                .default_value("9200")
+                .help("HTTP port")
+                .long("port")
+                .required(true)
+                .short("p")
+                .validator(is_num),
+        )
         .get_matches();
 
+    let port = matches.value_of("port").unwrap().parse::<u16>().unwrap();
 
-    let host = matches.value_of("host").unwrap_or("localhost");
-    let port = matches.value_of("port").unwrap_or("port");
-    let username = matches.value_of("user").unwrap_or("root");
-    let password = matches.value_of("password").unwrap_or("");
-    println!("Value for socket: {} {} {} {}", host, port, username, password);
+    // This is our socket address...
+    let addr = ([127, 0, 0, 1], port).into();
 
+    // A `Service` is needed for every connection, so this
+    // creates one from our `hello_world` function.
+    let new_svc = || {
+        // service_fn_ok converts our function into a `Service`
+        service_fn_ok(hello_world)
+    };
 
+    let server = Server::bind(&addr)
+        .serve(new_svc)
+        .map_err(|e| eprintln!("server error: {}", e));
+
+    // Run this server for... forever!
+    hyper::rt::run(server);
+}
+
+const PHRASE: &str = "Hello, World!";
+
+fn hello_world(_req: Request<Body>) -> Response<Body> {
+    Response::new(Body::from(PHRASE))
+}
+
+fn is_num(s: String) -> Result<(), String> {
+    if let Err(..) = s.parse::<u64>() {
+        return Err(String::from("Not a valid number!"));
+    }
+    Ok(())
 }
