@@ -1,6 +1,6 @@
 [package]
 name = "httpwsrep"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Nicolas Embriz <nbari@tequila.io>"]
 description = "http status codes for galera cluster wsrep"
 documentation = "https://github.com/nbari/httpwsrep/blob/master/README.md"
@@ -9,9 +9,12 @@ repository = "https://github.com/nbari/httpwsrep"
 readme = "README.md"
 keywords = ["galera", "cluster", "mysql", "http", "wsrep"]
 categories = ["database", "network-programming"]
-license-file = "LICENSE"
+license = "BSD-3-Clause"
 edition = "2018"
+
+[badges]
+travis-ci = { repository = "nbari/httpwsrep", branch = "master" }
 
 [dependencies]
 clap = "2"
-mysql = "16"
+mysql = "17"
