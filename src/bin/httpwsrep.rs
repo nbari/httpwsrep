@@ -21,7 +21,7 @@ async fn main() {
 
     let db = warp::any().map(move || pool.clone());
 
-    let state = warp::get().and(db.clone()).and_then(state);
+    let state = warp::any().and(db.clone()).and_then(state);
 
     warp::serve(state).run(([0, 0, 0, 0], port)).await;
 }
