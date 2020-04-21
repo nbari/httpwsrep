@@ -26,7 +26,7 @@ The posible values for `wsrep_local_state` are:
     backend galera
         mode tcp
         option httpchk
-        default-sever check port 9200
+        default-server check port 9200
         server node0 10.0.0.1:3306
         server node1 10.0.0.2:3306
         server node2 10.0.0.3:3306
