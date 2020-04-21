@@ -26,6 +26,8 @@ async fn main() {
     warp::serve(state).run(([0, 0, 0, 0], port)).await;
 }
 
+// state query database and if wsrep_local_state == 4 it will return HTTP 200
+// OK, otherwise HTTP 503 Service Unavailable
 async fn state(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Rejection> {
     let rs = match queries::state(pool.clone()).await {
         Ok(rs) => rs,

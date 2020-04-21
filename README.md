@@ -1,6 +1,9 @@
 # httpwsrep
 HTTP status codes for galera cluster
 
+[![crates.io](https://img.shields.io/crates/v/httpwsrep.svg)](https://crates.io/crates/httpwsrep)
+[![Build Status](https://travis-ci.org/nbari/httpwsrep.svg?branch=master)](https://travis-ci.org/nbari/httpwsrep)
+
 [![example](https://img.youtube.com/vi/yylV9WntnB4/0.jpg)](https://youtu.be/yylV9WntnB4)
 
 This helps to check the galera cluster using `httpchk` which queries the galera
@@ -23,9 +26,10 @@ The posible values for `wsrep_local_state` are:
     backend galera
         mode tcp
         option httpchk
-        server node0 10.0.0.1:3306 check port 9200
-        server node1 10.0.0.2:3306 check port 9200
-        server node2 10.0.0.3:3306 check port 9200
+        default-sever check port 9200
+        server node0 10.0.0.1:3306
+        server node1 10.0.0.2:3306
+        server node2 10.0.0.3:3306
 
 
 ## httpwsrep
@@ -36,7 +40,7 @@ for example if using [immortal](https://immortal.run) you could create
 
     cmd: /path/to/httpwsrep
     env:
-        DSN: mysql://haproxy@tcp(10.0.0.1)/
+        DSN: mysql://haproxy@tcp(10.0.0.1:3306)/
     log:
         file: /var/log/httpwsrep.log
 

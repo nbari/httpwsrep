@@ -1,8 +1,8 @@
 [package]
 name = "httpwsrep"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Nicolas Embriz <nbari@tequila.io>"]
-description = "http status codes for galera cluster wsrep"
+description = "http status codes for galera cluster"
 documentation = "https://github.com/nbari/httpwsrep/blob/master/README.md"
 homepage = "https://github.com/nbari/httpwsrep"
 repository = "https://github.com/nbari/httpwsrep"
