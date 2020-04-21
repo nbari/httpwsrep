@@ -1,5 +1,7 @@
 # httpwsrep
-HTTP status codes for galera cluster `wsrep_*`
+HTTP status codes for galera cluster
+
+[![example](https://img.youtube.com/vi/yylV9WntnB4/0.jpg)](https://youtu.be/yylV9WntnB4)
 
 This helps to check the galera cluster using `httpchk` which queries the galera
 node and gets its current state `SHOW STATUS LIKE 'wsrep_local_state';`
