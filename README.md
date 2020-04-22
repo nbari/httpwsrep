@@ -6,10 +6,12 @@ HTTP status codes for galera cluster
 
 [![example](https://img.youtube.com/vi/yylV9WntnB4/0.jpg)](https://youtu.be/yylV9WntnB4)
 
-This helps to check the galera cluster using `httpchk` which queries the galera
-node and gets its current state `SHOW STATUS LIKE 'wsrep_local_state';`
+This helps to check the galera cluster using `HAProxy - option httpchk`
+which queries the galera node and gets its current state from:
+`SHOW STATUS LIKE 'wsrep_local_state';`
 
-if `wsrep_local_state` == `4` it will return `HTTP 200 OK`, otherwise `HTTP 503 Service Unavailable`
+if `wsrep_local_state` == `4` it will return `HTTP 200 OK`, otherwise
+`HTTP 503 Service Unavailable`
 
 The posible values for `wsrep_local_state` are:
 
