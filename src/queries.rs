@@ -1,6 +1,8 @@
 use mysql_async::prelude::*;
 use std::error::Error;
 
+/// # Errors
+/// return Err if can't get the `wsrep_local_state`
 pub async fn state(pool: mysql_async::Pool) -> Result<u8, Box<dyn Error>> {
     let conn = pool.get_conn().await?;
     let (_, row) = conn
