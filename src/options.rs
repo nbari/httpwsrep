@@ -57,12 +57,14 @@ pub fn new() -> (u16, mysql_async::Pool) {
     let mut opts = mysql_async::OptsBuilder::new();
     opts.user(dsn.username);
     opts.pass(dsn.password.clone());
-    opts.ip_or_hostname(dsn.host.unwrap());
+    if let Some(host) = dsn.host {
+        opts.ip_or_hostname(host);
+        if let Some(port) = dsn.port {
+            opts.tcp_port(port);
+        }
+    }
     opts.socket(dsn.socket);
     opts.db_name(dsn.database);
-    if let Some(port) = dsn.port {
-        opts.tcp_port(port);
-    }
     opts.pool_options(mysql_async::PoolOptions::with_constraints(
         mysql_async::PoolConstraints::new(pool_min, pool_max).unwrap(),
     ));
