@@ -10,7 +10,8 @@ fn is_num(s: String) -> Result<(), String> {
 }
 
 #[must_use]
-pub fn new() -> (u16, mysql_async::Pool) {
+// returns (v46, port, pool)
+pub fn new() -> (bool, u16, mysql_async::Pool) {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .arg(
@@ -42,6 +43,11 @@ pub fn new() -> (u16, mysql_async::Pool) {
                 .long("port")
                 .validator(is_num)
                 .required(true),
+        )
+        .arg(
+            Arg::with_name("v46")
+                .help("listen in both IPv4 and IPv6")
+                .long("46"),
         )
         .get_matches();
 
@@ -81,5 +87,9 @@ pub fn new() -> (u16, mysql_async::Pool) {
     opts.conn_ttl(Duration::new(60, 0));
 
     let port = matches.value_of("port").unwrap().parse::<u16>().unwrap();
-    (port, mysql_async::Pool::new(opts))
+    (
+        matches.is_present("v46"),
+        port,
+        mysql_async::Pool::new(opts),
+    )
 }

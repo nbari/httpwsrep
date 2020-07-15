@@ -8,7 +8,7 @@ use warp::Filter;
 
 #[tokio::main]
 async fn main() {
-    let (port, pool) = options::new();
+    let (v46, port, pool) = options::new();
     pool.get_conn().await.unwrap_or_else(|e| {
         eprintln!("Could not connect to MySQL: {}", e);
         process::exit(1);
@@ -25,10 +25,14 @@ async fn main() {
 
     let state = warp::any().and(db.clone()).and_then(state);
 
-    // tcp46 or fallback to tcp4
-    let addr = match IpAddr::from_str("::0") {
-        Ok(a) => a,
-        Err(_) => IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+    let addr = if v46 {
+        // tcp46 or fallback to tcp4
+        match IpAddr::from_str("::0") {
+            Ok(a) => a,
+            _ => IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+        }
+    } else {
+        IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
     };
 
     warp::serve(state).run((addr, port)).await

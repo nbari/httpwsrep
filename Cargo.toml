@@ -1,6 +1,6 @@
 [package]
 name = "httpwsrep"
-version = "0.2.4"
+version = "0.3.0"
 authors = ["Nicolas Embriz <nbari@tequila.io>"]
 description = "http status codes for galera cluster"
 documentation = "https://github.com/nbari/httpwsrep/blob/master/README.md"
