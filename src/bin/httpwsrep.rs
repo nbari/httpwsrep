@@ -1,6 +1,8 @@
 use chrono::prelude::*;
 use httpwsrep::{options, queries};
+use std::net::{IpAddr, Ipv4Addr};
 use std::process;
+use std::str::FromStr;
 use warp::http::StatusCode;
 use warp::Filter;
 
@@ -23,7 +25,13 @@ async fn main() {
 
     let state = warp::any().and(db.clone()).and_then(state);
 
-    warp::serve(state).run(([0, 0, 0, 0], port)).await;
+    // tcp46 or fallback to tcp4
+    let addr = match IpAddr::from_str("::0") {
+        Ok(a) => a,
+        Err(_) => IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+    };
+
+    warp::serve(state).run((addr, port)).await
 }
 
 // state query database and if wsrep_local_state == 4 it will return HTTP 200
