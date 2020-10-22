@@ -29,7 +29,7 @@ async fn main() {
         // tcp46 or fallback to tcp4
         match IpAddr::from_str("::0") {
             Ok(a) => a,
-            _ => IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+            Err(_) => IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
         }
     } else {
         IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
@@ -43,8 +43,8 @@ async fn main() {
 async fn state(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Rejection> {
     let rs = match queries::state(pool.clone()).await {
         Ok(rs) => rs,
-        err => {
-            eprintln!("{:?}", err);
+        Err(e) => {
+            eprintln!("{:?}", e);
             return Ok(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };

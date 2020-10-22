@@ -23,20 +23,6 @@ pub fn new() -> (bool, u16, mysql_async::Pool) {
                 .required(true),
         )
         .arg(
-            Arg::with_name("min")
-                .default_value("3")
-                .help("mysql pool min connections")
-                .long("min")
-                .validator(is_num),
-        )
-        .arg(
-            Arg::with_name("max")
-                .default_value("50")
-                .help("mysql pool max connections")
-                .long("max")
-                .validator(is_num),
-        )
-        .arg(
             Arg::with_name("port")
                 .default_value("9200")
                 .help("listening port")
@@ -57,34 +43,22 @@ pub fn new() -> (bool, u16, mysql_async::Pool) {
         eprintln!("{}", e);
         process::exit(1);
     });
-    let pool_min = matches.value_of("min").unwrap().parse::<usize>().unwrap();
-    let pool_max = matches.value_of("max").unwrap().parse::<usize>().unwrap();
 
-    let mut opts = mysql_async::OptsBuilder::new();
-    opts.user(dsn.username);
-    opts.pass(dsn.password.clone());
-    if let Some(host) = dsn.host {
-        opts.ip_or_hostname(host);
-        if let Some(port) = dsn.port {
-            opts.tcp_port(port);
-        }
-    }
-    opts.socket(dsn.socket);
-    opts.db_name(dsn.database);
-    opts.pool_options(mysql_async::PoolOptions::with_constraints(
-        mysql_async::PoolConstraints::new(pool_min, pool_max).unwrap(),
-    ));
+    let opts = mysql_async::OptsBuilder::default()
+        .user(dsn.username)
+        .pass(dsn.password)
+        .db_name(dsn.database)
+        .ip_or_hostname(dsn.host.unwrap_or_else(|| String::from("127.0.0.1")))
+        .tcp_port(dsn.port.unwrap_or_else(|| 3306))
+        .socket(dsn.socket)
+        .conn_ttl(Duration::new(60, 0));
 
     // mysql ssl options
-    let mut ssl_opts = mysql_async::SslOpts::default();
     if let Some(tls) = dsn.params.get("tls") {
         if *tls == "skip-verify" {
-            ssl_opts.set_danger_accept_invalid_certs(true);
+            mysql_async::SslOpts::default().with_danger_accept_invalid_certs(true);
         }
-        opts.ssl_opts(ssl_opts);
     }
-
-    opts.conn_ttl(Duration::new(60, 0));
 
     let port = matches.value_of("port").unwrap().parse::<u16>().unwrap();
     (
