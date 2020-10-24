@@ -3,16 +3,21 @@ use httpwsrep::{options, queries};
 use std::net::{IpAddr, Ipv4Addr};
 use std::process;
 use std::str::FromStr;
+use std::time::Duration;
+use tokio::time::timeout;
 use warp::http::StatusCode;
 use warp::Filter;
 
 #[tokio::main]
 async fn main() {
     let (v46, port, pool) = options::new();
-    pool.get_conn().await.unwrap_or_else(|e| {
-        eprintln!("Could not connect to MySQL: {}", e);
+    if timeout(Duration::from_secs(3), pool.get_conn())
+        .await
+        .is_err()
+    {
+        eprintln!("Could not connect to the Galera node");
         process::exit(1);
-    });
+    }
 
     let now = Utc::now();
     println!(

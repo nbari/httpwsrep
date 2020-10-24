@@ -1,8 +1,8 @@
 [package]
 name = "httpwsrep"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Nicolas Embriz <nbari@tequila.io>"]
-description = "http status codes for galera cluster"
+description = "HTTP status codes for Galera cluster"
 documentation = "https://github.com/nbari/httpwsrep/blob/master/README.md"
 homepage = "https://github.com/nbari/httpwsrep"
 repository = "https://github.com/nbari/httpwsrep"
@@ -17,7 +17,7 @@ travis-ci = { repository = "nbari/httpwsrep", branch = "master" }
 
 [dependencies]
 anyhow = "1"
-chrono = "0.4.11"
+chrono = "0.4.19"
 clap = "2.33"
 dsn = "1"
 mysql_async = "0.25"
