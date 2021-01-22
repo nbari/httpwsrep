@@ -49,7 +49,7 @@ pub fn new() -> (bool, u16, mysql_async::Pool) {
         .pass(dsn.password)
         .db_name(dsn.database)
         .ip_or_hostname(dsn.host.unwrap_or_else(|| String::from("127.0.0.1")))
-        .tcp_port(dsn.port.unwrap_or_else(|| 3306))
+        .tcp_port(dsn.port.unwrap_or(3306))
         .socket(dsn.socket)
         .conn_ttl(Duration::new(60, 0));
 
