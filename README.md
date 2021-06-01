@@ -2,7 +2,7 @@
 HTTP status codes for galera cluster
 
 [![crates.io](https://img.shields.io/crates/v/httpwsrep.svg)](https://crates.io/crates/httpwsrep)
-[![Build Status](https://travis-ci.org/nbari/httpwsrep.svg?branch=master)](https://travis-ci.org/nbari/httpwsrep)
+[![build](https://github.com/nbari/httpwsrep/actions/workflows/build.yml/badge.svg)](https://github.com/nbari/httpwsrep/actions/workflows/build.yml)
 
 [![example](https://img.youtube.com/vi/yylV9WntnB4/0.jpg)](https://youtu.be/yylV9WntnB4)
 
