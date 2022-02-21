@@ -40,7 +40,7 @@ async fn main() {
         IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
     };
 
-    warp::serve(state).run((addr, port)).await
+    warp::serve(state).run((addr, port)).await;
 }
 
 // state query database and if wsrep_local_state == 4 it will return HTTP 200
