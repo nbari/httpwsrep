@@ -11,13 +11,15 @@ use tokio::time::timeout;
 use warp::http::StatusCode;
 use warp::{Filter, Rejection, Reply};
 
-use prometheus::{IntCounter, IntCounterVec, Opts, Registry};
+use prometheus::{Encoder, IntCounter, IntCounterVec, Opts, Registry};
 
 lazy_static! {
-    pub static ref REGISTRY: Registry = Registry::new();
-    pub static ref INCOMING_REQUESTS: IntCounter =
+    static ref REGISTRY: Registry = Registry::new();
+    static ref INCOMING_REQUESTS: IntCounter =
         IntCounter::new("incoming_requests", "Incoming Requests").expect("metric can be created");
-    pub static ref WSREP_LOCAL_STATE: IntCounterVec =
+    static ref CONNECTION_ERROR: IntCounter =
+        IntCounter::new("connection_error", "Connection error").expect("metric can be created");
+    static ref WSREP_LOCAL_STATE: IntCounterVec =
         IntCounterVec::new(Opts::new("state", "Node State"), &["state"])
             .expect("metric can be created");
 }
@@ -26,6 +28,10 @@ lazy_static! {
 async fn main() {
     REGISTRY
         .register(Box::new(INCOMING_REQUESTS.clone()))
+        .expect("collector can be registered");
+
+    REGISTRY
+        .register(Box::new(CONNECTION_ERROR.clone()))
         .expect("collector can be registered");
 
     REGISTRY
@@ -73,6 +79,7 @@ async fn state(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Reject
     let rs = match queries::state(pool.clone()).await {
         Ok(rs) => rs,
         Err(e) => {
+            CONNECTION_ERROR.inc();
             eprintln!("{:?}", e);
             return Ok(StatusCode::INTERNAL_SERVER_ERROR);
         }
@@ -90,7 +97,6 @@ async fn state(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Reject
 }
 
 async fn metrics_handler() -> Result<impl Reply, Rejection> {
-    use prometheus::Encoder;
     let encoder = prometheus::TextEncoder::new();
 
     let mut buffer = Vec::new();
