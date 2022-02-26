@@ -20,6 +20,7 @@ pub fn new() -> (bool, u16, mysql_async::Pool) {
                 .help("mysql://<username>:<password>@tcp(<host>:<port>)/<database>")
                 .long("dsn")
                 .short('d')
+                .takes_value(true)
                 .required(true),
         )
         .arg(
@@ -28,6 +29,7 @@ pub fn new() -> (bool, u16, mysql_async::Pool) {
                 .help("listening port")
                 .long("port")
                 .short('p')
+                .takes_value(true)
                 .validator(is_num),
         )
         .arg(
