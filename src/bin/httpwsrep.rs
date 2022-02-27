@@ -1,41 +1,51 @@
-#[macro_use]
-extern crate lazy_static;
-
 use chrono::prelude::*;
 use httpwsrep::{options, queries};
+use lazy_static::lazy_static;
+use prometheus::{Encoder, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, Opts, Registry};
 use std::net::{IpAddr, Ipv4Addr};
 use std::process;
 use std::str::FromStr;
-use std::time::Duration;
-use tokio::time::timeout;
+use tokio::time::{timeout, Duration};
+use warp::filters::log::{Info, Log};
 use warp::http::StatusCode;
 use warp::{Filter, Rejection, Reply};
 
-use prometheus::{Encoder, IntCounter, IntCounterVec, Opts, Registry};
-
 lazy_static! {
     static ref REGISTRY: Registry = Registry::new();
-    static ref INCOMING_REQUESTS: IntCounter =
-        IntCounter::new("incoming_requests", "Incoming Requests").expect("metric can be created");
     static ref CONNECTION_ERROR: IntCounter =
         IntCounter::new("connection_error", "Connection error").expect("metric can be created");
     static ref WSREP_LOCAL_STATE: IntCounterVec =
         IntCounterVec::new(Opts::new("state", "Node State"), &["state"])
             .expect("metric can be created");
+    static ref RESPONSE_TIME: HistogramVec = HistogramVec::new(
+        HistogramOpts::new("response_time", "HTTP response times"),
+        &["method", "handler"],
+    )
+    .expect("metric can be created");
+}
+
+fn metrics_end(handler_name: &'static str) -> Log<impl Fn(Info<'_>) + Copy> {
+    warp::log::custom(move |info: Info<'_>| {
+        let duration = info.elapsed().as_secs_f64();
+        let method = info.method().clone();
+        RESPONSE_TIME
+            .with_label_values(&[method.as_str(), handler_name])
+            .observe(duration);
+    })
 }
 
 #[tokio::main]
 async fn main() {
-    REGISTRY
-        .register(Box::new(INCOMING_REQUESTS.clone()))
-        .expect("collector can be registered");
-
     REGISTRY
         .register(Box::new(CONNECTION_ERROR.clone()))
         .expect("collector can be registered");
 
     REGISTRY
         .register(Box::new(WSREP_LOCAL_STATE.clone()))
+        .expect("collector can be registered");
+
+    REGISTRY
+        .register(Box::new(RESPONSE_TIME.clone()))
         .expect("collector can be registered");
 
     let (v46, port, pool) = options::new();
@@ -54,10 +64,6 @@ async fn main() {
         port
     );
 
-    let db = warp::any().map(move || pool.clone());
-
-    let state = warp::any().and(db.clone()).and_then(state);
-
     let addr = if v46 {
         // tcp46 or fallback to tcp4
         match IpAddr::from_str("::0") {
@@ -68,14 +74,23 @@ async fn main() {
         IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
     };
 
-    let metrics_route = warp::path!("metrics").and_then(metrics_handler);
-    warp::serve(metrics_route.or(state)).run((addr, port)).await;
+    let metrics = warp::path("metrics").and(warp::get().and_then(metrics_handler));
+
+    let state = warp::path::end().and(
+        warp::any()
+            .map(move || pool.clone())
+            .and_then(state_handler)
+            .with(metrics_end("state")),
+    );
+
+    let routes = state.or(metrics);
+
+    warp::serve(routes).run((addr, port)).await;
 }
 
 // state query database and if wsrep_local_state == 4 it will return HTTP 200
 // OK, otherwise HTTP 503 Service Unavailable
-async fn state(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Rejection> {
-    INCOMING_REQUESTS.inc();
+async fn state_handler(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Rejection> {
     let rs = match queries::state(pool.clone()).await {
         Ok(rs) => rs,
         Err(e) => {
@@ -84,6 +99,7 @@ async fn state(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Reject
             return Ok(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
+
     match rs {
         4 => {
             WSREP_LOCAL_STATE.with_label_values(&["4"]).inc();
@@ -96,14 +112,15 @@ async fn state(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp::Reject
     }
 }
 
-async fn metrics_handler() -> Result<impl Reply, Rejection> {
+/// # Errors
+/// return Err if can't encode
+pub async fn metrics_handler() -> Result<impl Reply, Rejection> {
     let encoder = prometheus::TextEncoder::new();
-
     let mut buffer = Vec::new();
     if let Err(e) = encoder.encode(&REGISTRY.gather(), &mut buffer) {
         eprintln!("could not encode custom metrics: {}", e);
     };
-    let mut res = match String::from_utf8(buffer.clone()) {
+    let res = match String::from_utf8(buffer.clone()) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("custom metrics could not be from_utf8'd: {}", e);
@@ -111,20 +128,5 @@ async fn metrics_handler() -> Result<impl Reply, Rejection> {
         }
     };
     buffer.clear();
-
-    let mut buffer = Vec::new();
-    if let Err(e) = encoder.encode(&prometheus::gather(), &mut buffer) {
-        eprintln!("could not encode prometheus metrics: {}", e);
-    };
-    let res_custom = match String::from_utf8(buffer.clone()) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!("prometheus metrics could not be from_utf8'd: {}", e);
-            String::default()
-        }
-    };
-    buffer.clear();
-
-    res.push_str(&res_custom);
     Ok(res)
 }
