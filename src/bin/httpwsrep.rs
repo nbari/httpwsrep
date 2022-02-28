@@ -115,18 +115,10 @@ async fn state_handler(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp
 /// # Errors
 /// return Err if can't encode
 pub async fn metrics_handler() -> Result<impl Reply, Rejection> {
-    let encoder = prometheus::TextEncoder::new();
     let mut buffer = Vec::new();
+    let encoder = prometheus::TextEncoder::new();
     if let Err(e) = encoder.encode(&REGISTRY.gather(), &mut buffer) {
         eprintln!("could not encode custom metrics: {}", e);
     };
-    let res = match String::from_utf8(buffer.clone()) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!("custom metrics could not be from_utf8'd: {}", e);
-            String::default()
-        }
-    };
-    buffer.clear();
-    Ok(res)
+    Ok(buffer)
 }

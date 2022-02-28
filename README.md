@@ -49,3 +49,7 @@ for example if using [immortal](https://immortal.run) you could create
 > a valid mysql user needs to be created, in this case the user is `haproxy`
 
 By default port `9200` is used but if required can change it using option `--port`
+
+## metrics
+
+You can use Prometheus and query the endpoint: `/metrics`
