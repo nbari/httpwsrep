@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use httpwsrep::{options, queries};
 use lazy_static::lazy_static;
-use prometheus::{Encoder, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, Opts, Registry};
+use prometheus::{Encoder, HistogramOpts, HistogramVec, IntCounter, IntGauge, Registry};
 use std::net::{IpAddr, Ipv4Addr};
 use std::process;
 use std::str::FromStr;
@@ -15,9 +15,8 @@ lazy_static! {
     static ref CONNECTION_ERROR: IntCounter =
         IntCounter::new("httpwsrep_connection_error", "Connection error")
             .expect("metric can be created");
-    static ref WSREP_LOCAL_STATE: IntCounterVec =
-        IntCounterVec::new(Opts::new("httpwsrep_state", "Node State"), &["state"])
-            .expect("metric can be created");
+    static ref WSREP_LOCAL_STATE: IntGauge =
+        IntGauge::new("httpwsrep_state", "Node State").expect("metric can be created");
     static ref RESPONSE_TIME: HistogramVec = HistogramVec::new(
         HistogramOpts::new("httpwsrep_response_time", "HTTP response times"),
         &["method", "handler"],
@@ -103,11 +102,11 @@ async fn state_handler(pool: mysql_async::Pool) -> Result<impl warp::Reply, warp
 
     match rs {
         4 => {
-            WSREP_LOCAL_STATE.with_label_values(&["4"]).inc();
+            WSREP_LOCAL_STATE.set(4);
             Ok(StatusCode::OK)
         }
         n => {
-            WSREP_LOCAL_STATE.with_label_values(&[&n.to_string()]).inc();
+            WSREP_LOCAL_STATE.set(n.into());
             Ok(StatusCode::SERVICE_UNAVAILABLE)
         }
     }
