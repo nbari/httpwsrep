@@ -13,12 +13,13 @@ use warp::{Filter, Rejection, Reply};
 lazy_static! {
     static ref REGISTRY: Registry = Registry::new();
     static ref CONNECTION_ERROR: IntCounter =
-        IntCounter::new("connection_error", "Connection error").expect("metric can be created");
+        IntCounter::new("httpwsrep_connection_error", "Connection error")
+            .expect("metric can be created");
     static ref WSREP_LOCAL_STATE: IntCounterVec =
-        IntCounterVec::new(Opts::new("state", "Node State"), &["state"])
+        IntCounterVec::new(Opts::new("httpwsrep_state", "Node State"), &["state"])
             .expect("metric can be created");
     static ref RESPONSE_TIME: HistogramVec = HistogramVec::new(
-        HistogramOpts::new("response_time", "HTTP response times"),
+        HistogramOpts::new("httpwsrep_response_time", "HTTP response times"),
         &["method", "handler"],
     )
     .expect("metric can be created");
